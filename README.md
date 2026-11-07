@@ -1,48 +1,38 @@
 # compose-lint
 
-[![PyPI version](https://img.shields.io/pypi/v/trysac-compose-lint)](https://pypi.org/project/trysac-compose-lint/)
-[![License: MIT](https://img.shields.io/pypi/l/trysac-compose-lint)](LICENSE)
-[![CI](https://github.com/Trysac/u184-compose-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u184-compose-lint/actions/workflows/ci.yml)
+Lint docker-compose files with ten security and correctness rules, line numbers from the YAML node tree, bounded parsing, and values never echoed.
 
-Lint docker-compose files with ten security and correctness rules, line numbers from the YAML node tree, bounded parsing and values never echoed
+## Installation
 
-## Problem
-
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
-
-## Install
-
-```sh
-pip install trysac-compose-lint
-# or
-uv add trysac-compose-lint
+```bash
+pip install compose-lint
 ```
-
-Requires Python 3.10 or newer. No runtime dependencies.
 
 ## Usage
 
 ```python
-import compose_lint
+from compose_lint import lint, format_findings
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(compose_lint.normalize("  Hello World "))  # -> "hello world"
-
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    compose_lint.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+content = "services:\n  db:\n    image: postgres\n    privileged: true\n"
+findings = lint(content)
+print(format_findings(findings, "text"))
 ```
 
-## Documentation
+## Rules
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+- `CL001`: Privileged containers (`privileged: true`)
+- `CL002`: Mounting host Docker daemon socket (`docker.sock`)
+- `CL003`: Image missing tag, using `:latest`, or lacking digest
+- `CL004`: Published port bound without specific host IP
+- `CL005`: Plaintext credentials / secrets defined in environment variables
+- `CL006`: Host network mode (`network_mode: host`)
+- `CL007`: Service depends on undefined service in `depends_on`
+- `CL008`: Duplicate mapping keys
+- `CL009`: Obsolete top-level `version` key
+- `CL010`: Dangerous capabilities added (`ALL` or `SYS_ADMIN` in `cap_add`)
 
-## License
+## Why not `docker compose config` or `hadolint`?
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+`docker compose config` validates basic syntax but ignores common security risks like privileged containers or plaintext secrets. `hadolint` is designed for `Dockerfile` syntax, not the specialized security constraints required for Compose applications.
+
+For security details, see [docs/SECURITY.md](docs/SECURITY.md).

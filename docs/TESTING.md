@@ -1,20 +1,13 @@
 # Testing
 
-## Running
+## Coverage
 
-```sh
-uv run pytest --cov=compose_lint   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
-```
+Tests cover the public API (`lint`, `format_findings`) and the specific acceptance criteria defined in the project specification.
+
+- `tests/test_compose_lint.py`: Contains acceptance tests for rules `CL001` through `CL010`, edge case parsing (such as `input_too_large` or `yaml_error`), and functionality of `format_findings` for text and JSON outputs.
 
 ## Policy
 
-- Branch coverage of `src/compose_lint` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import compose_lint`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
-
-## Layout
-
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.
+- Tests exercise the public API and assert observable outcomes: return values, specific exception codes, and findings.
+- Tests are deterministic, avoiding network dependencies or wall-clock dependence.
+- Bug fixes are paired with a failing test case that reproduces the issue.

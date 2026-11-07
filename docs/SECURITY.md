@@ -2,18 +2,14 @@
 
 ## Threat model
 
-`trysac-compose-lint` is a pure library without I/O. The main risks are:
+`compose-lint` acts as a static analysis library processing untrusted YAML input.
 
-- **Supply chain**: a compromised dependency or CI action. Mitigation: no runtime dependencies,
-  Dependabot weekly updates, actions pinned to major versions, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and fail with
-  explicit exceptions; never `eval`, `exec` or deserialize untrusted data.
+### Defended
 
-## Publishing
+- **Resource Exhaustion (Billion-Laughs)**: The parser uses an explicit stack, enforcing limits on byte size (`max_bytes`), node visit counts (`max_nodes`), and AST depth (`max_depth`). This prevents recursive depth or alias bomb attacks.
+- **Data Exposure**: To prevent leaking credentials, finding messages only name the offending environment key (`CL005`) and the library explicitly strips the content of any environment value before report generation.
+- **Unsafe Deserialization**: The library uses `yaml.SafeLoader` to construct the AST, rejecting custom Python object construction.
 
-Releases are published to PyPI with trusted publishing (OIDC) when available, never with a
-long-lived token stored in the repository.
+### Not Defended
 
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- **Logic bypass**: The tool is static; it does not resolve file-system-level includes or environment variable files (`.env`). It cannot detect secret leaks inside files that are not present in the linted text buffer.

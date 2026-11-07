@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Implement Docker Compose linter with ten security rules (CL001-CL010), bounded AST traversal, duplicate key checks, and CLI.
 - Initial project structure from the factory utility template.

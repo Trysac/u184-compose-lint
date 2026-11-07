@@ -1,29 +1,19 @@
 # Architecture
 
-## Purpose
+`compose-lint` analyzes Docker Compose YAML files by inspecting the YAML Abstract Syntax Tree (AST) constructed via `yaml.compose` using `yaml.SafeLoader`.
 
-`trysac-compose-lint` is a small, dependency-free Python library: Lint docker-compose files with ten security and correctness rules, line numbers from the YAML node tree, bounded parsing and values never echoed
+## Key Components
 
-## Shape
+1. **Safe Parser & Resource Guard (`linter._parse_yaml_tree`)**:
+   - Enforces an input byte size limit.
+   - Traverses YAML AST nodes using an explicit stack to enforce depth limits (`max_depth`) and node visit count limits (`max_nodes`), safeguarding against YAML alias bombs (e.g. billion-laughs).
+   - Intercepts mapping nodes to detect duplicate mapping keys before standard dictionary conversion drops them (`CL008`).
 
-```text
-caller code --> compose_lint (public API in __init__.py)
-                    |
-                    +-- pure functions, no I/O, no global state
-```
+2. **Rule Evaluator (`linter.lint`)**:
+   - Evaluates Compose specification rules (`CL001` through `CL010`).
+   - Extracts exact 1-based line numbers directly from AST node marks.
+   - Ensures secret values are scrubbed and never included in error messages or reports (`CL005`).
 
-- **Public API**: the names listed in `__all__` of `src/compose_lint/__init__.py`. Anything else is
-  internal and may change without a major version.
-- **Errors**: invalid input raises built-in exceptions (`ValueError`, `TypeError`) with a clear
-  message; the library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, isolate it in its own module behind a small
-  interface and record the choice in an ADR.
-
-## Quality contract
-
-`scripts/check.py` is the single definition of the gates; `fabrica.json` tells the factory and CI
-how to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+3. **Formatting & CLI (`linter.format_findings` & `__main__.py`)**:
+   - Outputs reports in human-readable text (`<filename>:<line> <rule> <severity> <message>`) or JSON.
+   - CLI returns 0 on success/warnings, 1 on error-level findings, and 2 on unhandled exceptions or file IO errors.
