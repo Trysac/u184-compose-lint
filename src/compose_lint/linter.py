@@ -9,9 +9,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
+import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
-import yaml
 from compose_lint.errors import ComposeLintError
 
 logger = logging.getLogger(__name__)
