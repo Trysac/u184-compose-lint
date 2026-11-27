@@ -4,8 +4,10 @@ Lint docker-compose files with ten security and correctness rules, line numbers 
 
 ## Installation
 
+Not published to PyPI yet. Install it from GitHub:
+
 ```bash
-pip install compose-lint
+pip install "git+https://github.com/Trysac/u184-compose-lint"
 ```
 
 ## Usage
